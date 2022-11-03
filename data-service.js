@@ -191,7 +191,7 @@ exports.addEmployee = function(data){
 
        var errText = "";
 
-       let emp = { 
+       let emp = {  //create emp object using data parameter
             employeeNum : employees.length + 1,       
             firstName : data.firstName,
             lastName : data.lastName,
@@ -215,6 +215,29 @@ exports.addEmployee = function(data){
       
 
     })
+   
+}
+
+exports.updateEmployee = function(employeeData){
+    console.log("UPDATE CALLED")
+    return new Promise(function(resolve, reject){
 
 
+        for(let i = 0; i< employees.length; ++i){
+
+            if (employees[i].employeeNum == employeeData.employeeNum){
+                console.log("MATCH FOUND FOR UPDATE");
+                employees[i] = employeeData;
+                console.log("Update complete");
+                resolve();
+            }
+
+        }
+
+        reject("No emp of " + employeeData.employeeNum + "Found");
+            
+
+        
+
+    })
 }
