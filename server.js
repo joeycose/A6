@@ -1,16 +1,29 @@
+/**********************************************************************************  
+ * BTI325–Assignment4* 
+ *  I declare that this assignment is my own work in accordance with Seneca  Academic Policy. 
+ *  No part *  of this assignment has been copied manually or electronically from any other source *  
+ * (including 3rd party web sites) or distributed to other students.*
+
+Name: Giuseppe Cosentino
+
+Heroku Link: https://fierce-chamber-53489.herokuapp.com/
+
+* *********************************************************************************/ 
+ 
+ 
  var bodyParser = require('body-parser');
  var express = require("express");
- const exphbs = require("express-handlebars"); //express handlebars
+ const exphbs = require("express-handlebars"); 
 
  
  var app=express();
  
- app.engine('.hbs', exphbs.engine({extname : ".hbs",   //Tells server how to hadnle HTML files thar formatted using handlebar's format(.hbs)
+ app.engine('.hbs', exphbs.engine({extname : ".hbs",   
  
  
  helpers: {
  
-     navLink : function(url, options){  //I don't fully understand this helper function, more research needed
+     navLink : function(url, options){  
      
              return '<li' + ((url == app.locals.activeRoute) ? ' class="active" ' : '') + '><a href="' + url + '">' + options.fn(this) + '</a></li>';},
            
