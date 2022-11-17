@@ -1,0 +1,55 @@
+ <div class="container">
+      <div class="row">
+    <div class = "col-md-12">
+
+       
+        <hr>
+                <div class = "table-responsive">
+                    <table class = "table">
+                            <thead>
+                                <tr> 
+                                    <th> Manager Num </th>
+                                    <th> Full Name </th>
+                                    <th> Email </th>
+                                    <th> Address </th>
+                                   
+                                    <th> Status </th>
+                                    <th> Department </th>
+                                    <th> Hire On </th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                               
+                                
+                                    {{#each data}}
+                                        <tr>   
+
+                                            <td>{{this.empNum}}</td>
+                                            <td><a href = "/employees/{{this.empNum}}">{{this.firstName}} {{lastName}}</a></td>
+                                            <td><a href="mailto: {{this.email}}">{{this.email}}</a></td>
+                                        
+                                            <td>{{this.addressStreet}}, {{this.addressCity}}, {{this.addressState}}, {{this.addressPostal}} </td>
+                                   
+                                            <td><a href="/employees?status={{this.status}}">{{this.status}}</a></td>
+                                            <td><a href="/employees?department={{this.department}}">{{this.department}}</a></td>
+                                            <td>{{this.hireDate}}</td>
+                                            <td><a href="/employee/delete/{{this.empNum}}" class="btn btn-danger">remove</a></td>
+                                        </tr>  
+                                    {{/each}}
+                              
+                            
+
+
+                            </tbody>
+                    </table>
+                </div>
+                 {{#unless data}}
+                    <div class="col-md-12 text-center"><strong>{{error}}</strong></div>
+                {{/unless}}
+        </div>
+         
+                                    
+    </div>
+    
+</div>
