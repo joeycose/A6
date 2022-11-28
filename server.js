@@ -7,6 +7,7 @@ var app=express();
 
 app.engine('.hbs', engine({extname : ".hbs",   //Tells server how to hadnle HTML files thar formatted using handlebar's format(.hbs)
 
+//gg
 
 helpers: {
 
