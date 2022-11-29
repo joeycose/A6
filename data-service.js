@@ -1,15 +1,15 @@
-const fs = require('fs'); //used for file reading :3
+const fs = require('fs'); 
 const data_folder = "./data/";
 
+var mongoose = require('mongoose');
 var employees;
 var departments;
-
 
 var exports = module.exports = {};
 
 const Sequelize = require('sequelize');
 
-var sequelize = new Sequelize('pixliobr', 'pixliobr', 'rLdmKthg1OfzT5w1iit-aVmkEEYOJtbu', {
+var sequelize = new Sequelize('suoufqxe', 'suoufqxe', 'ziwXZ0gQDSaoMq_SIuxGsFQi257kkmSX', {
     host: 'peanut.db.elephantsql.com',
     dialect: 'postgres',
     port: 5432,

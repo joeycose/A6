@@ -1,13 +1,24 @@
+/*********************************************************************************
+* BTI325 – Assignment 6
+* I declare that this assignment is my own work in accordance with Seneca Academic Policy. No part
+* of this assignment has been copied manually or electronically from any other source
+* (including 3rd party web sites) or distributed to other students.
+*
+* Name: Giuseppe Cosentino 
+* Online (Heroku Cyclic) Link: ________________________________________________________
+*
+********************************************************************************/ 
+
 
 var bodyParser = require('body-parser');
 var express = require("express");
-const { engine } = require("express-handlebars"); //express handlebars
+const exphbs = require("express-handlebars"); //express handlebars
+var clientSessions = require("client-sessions");
 
 var app=express();
 
-app.engine('.hbs', engine({extname : ".hbs",   //Tells server how to hadnle HTML files thar formatted using handlebar's format(.hbs)
+app.engine('.hbs', exphbs.engine({extname : ".hbs",   //Tells server how to hadnle HTML files thar formatted using handlebar's format(.hbs)
 
-//gg
 
 helpers: {
 
@@ -19,7 +30,7 @@ helpers: {
 
               if (arguments.length < 3)
 
-              throw new Error("Handlebars Helper equal needs 2 parameters");
+              throw new Error("Handlebars Helper equal needs 2 parameters");//I don't fully understand this helper function, more research needed
               
               if (lvalue != rvalue) {
                 return options.inverse(this);} 
@@ -31,18 +42,22 @@ helpers: {
     }
 }
 
-
-
-
 })) 
 
 app.set('view engine', '.hbs');
-app.use(express.static('public')); 
+app.use(express.static('public')); //idk know what this is used for q.q
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-var HTTP_PORT = process.env.PORT || 8080;
+app.use(clientSessions({
+  cookieName: "session", // this is the object name that will be added to 'req'
+  secret: "Joes_BTI325_A6", // this should be a long un-guessable string.
+  duration: 2 * 60 * 1000, // duration of the session in milliseconds (2 minutes)
+  activeDuration: 1000 * 60 // the session will be extended by this many ms each request (1 minute)
+}));
 
+
+var HTTP_PORT = process.env.PORT || 8080;
 
 var fs = require("fs");
 var path = require('path');
@@ -61,17 +76,28 @@ var storage = multer.diskStorage({
 const upload = multer({storage : storage});  //tell multer to use the diskStorage function for naming files instead of its default settings
 
 const data_services =  require("./data-service")
+const dataServiceAuth = require("./data-service-auth");
 
 const views = '/views/';
 
 function onHttpStart() {
     console.log("Express http server listening on: " + HTTP_PORT);
-  }
+}
  
+function ensureLogin(req, res, next) {
+  if (!req.session.user) {
+    res.redirect("/login");
+  } else {
+    next();
+  }
+}
 
-app.use(function(req,res,next){ //adds property activeRoute to app.locals. I don't fully understand this  function, more research needed
 
-  let route = req.baseUrl + req.path;
+app.use(function(req,res,next){ 
+
+  res.locals.session = req.session;
+
+  let route = req.baseUrl + req.path;//adds property activeRoute to app.locals. I don't fully understand this  function, more research needed
   app.locals.activeRoute = (route == "/") ? "/" : route.replace(/\/$/, "");
   next();
 
@@ -89,7 +115,34 @@ app.get("/about", (req, res) =>{
 })
 
 
-app.get("/employees", function(req,res){
+app.get("/login", function(req,res){
+    console.log("LOGIN PAGE!");
+    res.render("login");
+
+})
+
+app.get("/logout", function(req, res){
+
+  
+    req.session.reset();
+    res.redirect("/");
+
+});
+
+
+app.get("/register", function(req,res){
+
+  res.render("register");
+
+})
+
+app.get("/userHistory", ensureLogin,function(req,res){
+
+    res.render("userHistory");
+
+});
+
+app.get("/employees", ensureLogin, function(req,res){
 
   console.log(req.query);
 
@@ -122,7 +175,7 @@ app.get("/employees", function(req,res){
 
 })
 
-app.get("/employees/add", function(req,res){
+app.get("/employees/add", ensureLogin, function(req,res){
 
 
 
@@ -143,7 +196,7 @@ app.get("/employees/add", function(req,res){
 
 })
 
-app.get("/employees/:num", function(req, res){
+app.get("/employees/:num", ensureLogin, function(req, res){
 
   
   let viewData = {};
@@ -161,7 +214,9 @@ app.get("/employees/:num", function(req, res){
   .then((data) => {
       viewData.departments = data; // store department data in the "viewData" object as "departments"
 
-      
+      // loop through viewData.departments and once we have found the departmentId that matches
+      // the employee's "department" value, add a "selected" property to the matching 
+      // viewData.departments object
 
       for (let i = 0; i < viewData.departments.length; i++) {
           if (viewData.departments[i].departmentId == viewData.employee[0].dataValues.department) {
@@ -181,7 +236,7 @@ app.get("/employees/:num", function(req, res){
   })
 })
 
-app.get('/employee/delete/:employeeNum', function(req, res){
+app.get('/employee/delete/:employeeNum', ensureLogin, function(req, res){
 
         data_services.deleteEmployeeByNum(req.params).then(function(){
 
@@ -196,7 +251,7 @@ app.get('/employee/delete/:employeeNum', function(req, res){
 
 });
 
-app.get("/managers", function(req, res){
+app.get("/managers",ensureLogin, function(req, res){
 
     data_services.getManagers().then(function(data){
       //res.json(data);
@@ -214,7 +269,7 @@ app.get("/managers", function(req, res){
 
 })
 
-app.get("/departments", function(req, res){
+app.get("/departments", ensureLogin, function(req, res){
 
     data_services.getDepartments().then(function(data){
 
@@ -232,13 +287,13 @@ app.get("/departments", function(req, res){
 
 })
 
-app.get("/departments/add", function(req,res){
+app.get("/departments/add", ensureLogin, function(req,res){
 
     res.render("addDepartment");
 
 })
 
-app.get("/department/:departmentId", function(req,res){
+app.get("/department/:departmentId",ensureLogin, function(req,res){
 
   data_services.getDepartmentById(req.params).then(function(dept){
 
@@ -251,14 +306,14 @@ app.get("/department/:departmentId", function(req,res){
 
 })
 
-app.get("/images/add", function(req,res){
+app.get("/images/add", ensureLogin, function(req,res){
 
   res.render("addImage")
   //res.sendFile(path.join(__dirname + views + "addImage.html"));
 
 })
 
-app.get("/images",  function(req, res){
+app.get("/images", ensureLogin, function(req, res){
 
       fs.readdir("./public/images/uploaded", function(err, items){
 
@@ -280,7 +335,51 @@ app.get("/images",  function(req, res){
 
 })
 
-app.post("/employee/update", function(req,res){
+
+app.post("/register", function(req, res){
+
+  console.log("REGISTERING USER!");
+      dataServiceAuth.registerUser(req.body).then(function(){
+        
+
+         res.render("register", {successMessage : "User Created"});
+
+      }).catch(function(errors){
+
+            res.render("register", {errorMessage : errors, userName : req.body.userName})
+
+      });
+
+});
+
+app.post("/login", function(req,res){
+
+    req.body.userAgent = req.get('User-Agent');
+
+    dataServiceAuth.checkUser(req.body).then(function(user){
+
+      req.session.user = {
+
+        userName : user.userName,
+        email : user.email,
+        loginHistory : user.loginHistory
+
+
+      }
+
+      res.redirect("/employees");
+
+    }).catch(function(err){
+
+      //Returning the userName back to the login page, so the user does not forget the user value that was used to attempt to log into the system
+      res.render("login", {errorMessage : err, userName : req.body.userName});
+
+    })
+
+});
+
+
+app.post("/employee/update", ensureLogin, function(req,res){
    
     data_services.updateEmployee(req.body).then(function(){
       //console.log(req.body);
@@ -295,7 +394,7 @@ app.post("/employee/update", function(req,res){
 })
 
 
-app.post("/images/add", upload.single("imageFile"), function(req, res){
+app.post("/images/add", ensureLogin, upload.single("imageFile"), function(req, res){
     
   //Yo call me pussy ass bitch <3 
   //All love all love 
@@ -305,7 +404,7 @@ app.post("/images/add", upload.single("imageFile"), function(req, res){
 
 });
 
-app.post("/employees/add", function(req,res){
+app.post("/employees/add", ensureLogin, function(req,res){
   //console.log(req.body);
 
       data_services.addEmployee(req.body).then(function(data){
@@ -322,7 +421,7 @@ app.post("/employees/add", function(req,res){
 
 })
 
-app.post("/departments/add", function(req,res){
+app.post("/departments/add", ensureLogin, function(req,res){
 
   
   data_services.addDepartment(req.body).then(function(){
@@ -337,7 +436,7 @@ app.post("/departments/add", function(req,res){
 
 })
 
-app.post("/department/update", function(req,res){
+app.post("/department/update", ensureLogin, function(req,res){
 
 
     data_services.updateDepartment(req.body).then(function(){
@@ -351,12 +450,26 @@ app.post("/department/update", function(req,res){
 
 app.use((req, res) => {
     res.status(404).send("Your princess is in another castle brother...");
-  });
+});
 
 
 data_services.initialize().then(function(data){
-  app.listen(HTTP_PORT, onHttpStart);
+
+
+  dataServiceAuth.initialize().then(function(data){
+
+    app.listen(HTTP_PORT, onHttpStart);
+
+  }).catch(function(err){
+
+    console.log("Unable to start server : " + err);
+
+  })
+
+
+ 
 
 }).catch(function(err){
-  console.log(err);
+  
+  console.log("Unable to start server : " + err);
 })
