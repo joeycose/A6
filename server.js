@@ -17,12 +17,12 @@ var clientSessions = require("client-sessions");
 
 var app=express();
 
-app.engine('.hbs', exphbs.engine({extname : ".hbs",   //Tells server how to hadnle HTML files thar formatted using handlebar's format(.hbs)
+app.engine('.hbs', exphbs.engine({extname : ".hbs",   
 
 
 helpers: {
 
-    navLink : function(url, options){  //I don't fully understand this helper function, more research needed
+    navLink : function(url, options){  
     
             return '<li' + ((url == app.locals.activeRoute) ? ' class="active" ' : '') + '><a href="' + url + '">' + options.fn(this) + '</a></li>';},
           
@@ -68,12 +68,12 @@ var storage = multer.diskStorage({
 
   destination : "./public/images/uploaded", //store files here
   filename: function(req, file, cb){
-      cb(null, Date.now() + path.extname(file.originalname)); //Name file with date & time of posting
+      cb(null, Date.now() + path.extname(file.originalname)); 
   }
 
 });
 
-const upload = multer({storage : storage});  //tell multer to use the diskStorage function for naming files instead of its default settings
+const upload = multer({storage : storage});  
 
 const data_services =  require("./data-service")
 const dataServiceAuth = require("./data-service-auth");
